@@ -1,0 +1,146 @@
+// Prisma Schema for Attendance AI - Production Ready PostgreSQL DB
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  STUDENT
+  ADMIN
+  GUEST
+}
+
+enum ClassType {
+  LECTURE
+  LAB
+  TUTORIAL
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  CANCELLED
+  HOLIDAY
+}
+
+enum HolidayType {
+  NATIONAL
+  COLLEGE
+  FESTIVAL
+  MEDICAL
+  EXAM
+  CUSTOM
+}
+
+model User {
+  id                    String            @id @default(uuid())
+  email                 String            @unique
+  name                  String
+  avatar                String?
+  role                  Role              @default(STUDENT)
+  collegeName           String?
+  branch                String?
+  semester              Int?
+  targetAttendanceGoal  Float             @default(75.0)
+  preferredLanguage     String            @default("English")
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  subjects              Subject[]
+  timetableSlots        TimetableSlot[]
+  attendanceRecords     AttendanceRecord[]
+  holidays              Holiday[]
+  chatMessages          ChatMessage[]
+  notifications         Notification[]
+}
+
+model Subject {
+  id                    String            @id @default(uuid())
+  userId                String
+  user                  User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code                  String
+  name                  String
+  teacher               String?
+  credits               Int               @default(3)
+  color                 String            @default("#3b82f6")
+  presentCount          Int               @default(0)
+  absentCount           Int               @default(0)
+  cancelledCount        Int               @default(0)
+  totalClasses          Int               @default(0)
+  currentPercentage     Float             @default(0.0)
+  minTargetPercentage   Float             @default(75.0)
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  timetableSlots        TimetableSlot[]
+  attendanceRecords     AttendanceRecord[]
+
+  @@index([userId])
+}
+
+model TimetableSlot {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subjectId   String
+  subject     Subject   @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  day         String    // Monday, Tuesday, etc.
+  startTime   String    // HH:mm
+  endTime     String    // HH:mm
+  room        String?
+  teacher     String?
+  classType   ClassType @default(LECTURE)
+  createdAt   DateTime  @default(now())
+}
+
+model AttendanceRecord {
+  id          String           @id @default(uuid())
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subjectId   String
+  subject     Subject          @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  date        DateTime
+  status      AttendanceStatus
+  note        String?
+  createdAt   DateTime         @default(now())
+
+  @@index([userId, date])
+}
+
+model Holiday {
+  id          String      @id @default(uuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  date        DateTime
+  endDate     DateTime?
+  type        HolidayType @default(CUSTOM)
+  createdAt   DateTime    @default(now())
+}
+
+model ChatMessage {
+  id                String   @id @default(uuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sender            String   // user or ai
+  text              String
+  detectedLanguage  String?
+  actionPayload     Json?
+  createdAt         DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      String   // danger, warning, success, info
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
