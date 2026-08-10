@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>93Attendance-Calculator</title>
+  <meta name="description" content="93Attendance-Calculator — Track, Calculate, Stay Ahead. Works offline." />
+
+  <!-- PWA Manifest & Icons -->
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+
+  <!-- PWA Meta Tags -->
+  <meta name="theme-color" content="#2563EB" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="93Attendance" />
+  <meta name="application-name" content="93Attendance-Calculator" />
+  <meta name="msapplication-TileColor" content="#0B1220" />
+  <meta name="msapplication-TileImage" content="./icons/icon-192.png" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { bg: '#0B1220', card: '#111827', blue: '#2563EB', cyan: '#06B6D4', accent: '#10B981' },
+          },
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'Outfit', 'Inter', '-apple-system', 'sans-serif'],
+          },
+          animation: {
+            'float': 'float 9s ease-in-out infinite',
+            'float2': 'float2 12s ease-in-out infinite',
+            'orb-drift': 'orbDrift 20s ease-in-out infinite',
+            'orb-drift2': 'orbDrift2 25s ease-in-out infinite',
+            'fade-in-up': 'fadeInUp 0.65s cubic-bezier(0.34,1.56,0.64,1) both',
+            'fade-in-down': 'fadeInDown 0.5s cubic-bezier(0.34,1.56,0.64,1) both',
+            'scale-in': 'scaleIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both',
+            'slide-in-left': 'slideInLeft 0.55s cubic-bezier(0.34,1.56,0.64,1) both',
+            'slide-in-right': 'slideInRight 0.55s cubic-bezier(0.34,1.56,0.64,1) both',
+            'shimmer': 'shimmer 2.4s linear infinite',
+            'gradient-shift': 'gradientShift 5s ease infinite',
+          },
+          keyframes: {
+            float: { '0%,100%': { transform: 'translateY(0px) rotate(0deg)' }, '33%': { transform: 'translateY(-18px) rotate(1deg)' }, '66%': { transform: 'translateY(-8px) rotate(-1deg)' } },
+            float2: { '0%,100%': { transform: 'translateY(0px)' }, '40%': { transform: 'translateY(14px)' }, '70%': { transform: 'translateY(-10px)' } },
+            orbDrift: { '0%': { transform: 'translate(0,0) scale(1)' }, '25%': { transform: 'translate(80px,-60px) scale(1.08)' }, '50%': { transform: 'translate(50px,80px) scale(0.95)' }, '75%': { transform: 'translate(-40px,30px) scale(1.04)' }, '100%': { transform: 'translate(0,0) scale(1)' } },
+            orbDrift2: { '0%': { transform: 'translate(0,0) scale(1)' }, '30%': { transform: 'translate(-60px,40px) scale(1.06)' }, '60%': { transform: 'translate(70px,-50px) scale(0.93)' }, '100%': { transform: 'translate(0,0) scale(1)' } },
+            fadeInUp: { '0%': { opacity: '0', transform: 'translateY(32px) scale(0.96)' }, '100%': { opacity: '1', transform: 'translateY(0) scale(1)' } },
+            fadeInDown: { '0%': { opacity: '0', transform: 'translateY(-24px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+            scaleIn: { '0%': { opacity: '0', transform: 'scale(0.88)' }, '100%': { opacity: '1', transform: 'scale(1)' } },
+            slideInLeft: { '0%': { opacity: '0', transform: 'translateX(-40px) scale(0.96)' }, '100%': { opacity: '1', transform: 'translateX(0) scale(1)' } },
+            slideInRight: { '0%': { opacity: '0', transform: 'translateX(40px) scale(0.96)' }, '100%': { opacity: '1', transform: 'translateX(0) scale(1)' } },
+            shimmer: { '0%': { backgroundPosition: '-400px 0' }, '100%': { backgroundPosition: '400px 0' } },
+            gradientShift: { '0%,100%': { backgroundPosition: '0% 50%' }, '50%': { backgroundPosition: '100% 50%' } },
+          }
+        },
+      },
+    };
+  </script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- React 18 & Babel CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    :root {
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+      --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 80px;
+      -webkit-text-size-adjust: 100%;
+      height: 100%;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif;
+      background-color: #0E0B06;
+      color: #FEF3C7;
+      transition: background 0.6s var(--ease-smooth), color 0.6s var(--ease-smooth);
+      overflow-x: hidden;
+      overflow-y: scroll;
+      overscroll-behavior-y: none;
+      overscroll-behavior-x: none;
+      -webkit-overflow-scrolling: touch;
+      scroll-behavior: smooth;
+      scrollbar-gutter: stable;
+      min-height: 100%;
+      touch-action: pan-y;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
+
+    body.is-scrolling .bg-orb-1,
+    body.is-scrolling .bg-orb-2,
+    body.is-scrolling .bg-orb-3 {
+      animation-play-state: paused;
+    }
+
+    body.is-scrolling .theme-dark .glass-navbar,
+    body.is-scrolling .theme-dark .glass-card {
+      backdrop-filter: blur(14px) saturate(150%);
+      -webkit-backdrop-filter: blur(14px) saturate(150%);
+    }
+
+    #root {
+      opacity: 0;
+      animation: appReveal 0.5s var(--ease-out-expo) 0.05s forwards;
+    }
+
+    @keyframes appReveal {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* DARK THEME — AMBER / GOLD */
+    .theme-dark {
+      background-color: #0E0B06;
+      color: #FEF3C7;
+    }
+
+    .theme-dark .glass-navbar {
+      background: rgba(14, 11, 6, 0.85);
+      backdrop-filter: blur(40px) saturate(200%);
+      -webkit-backdrop-filter: blur(40px) saturate(200%);
+      border-bottom: 1.5px solid rgba(251, 191, 36, 0.12);
+      transition: backdrop-filter 0.3s var(--ease-smooth), background 0.5s var(--ease-smooth), border-color 0.5s ease;
+      transform: translate3d(0, 0, 0);
+      backface-visibility: hidden;
+    }
+
+    .theme-dark .glass-card {
+      background: rgba(26, 18, 6, 0.90);
+      backdrop-filter: blur(40px) saturate(180%);
+      -webkit-backdrop-filter: blur(40px) saturate(180%);
+      border: 1.5px solid rgba(251, 191, 36, 0.12);
+      box-shadow: 0 32px 80px -16px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(251, 191, 36, 0.04) inset;
+      transition: box-shadow 0.5s var(--ease-smooth), transform 0.45s var(--ease-spring), border-color 0.5s ease;
+      will-change: transform;
+      contain: layout style;
+    }
+
+    .theme-dark .glass-card:hover {
+      box-shadow: 0 48px 120px -24px rgba(0, 0, 0, 0.88), 0 0 0 1px rgba(251, 191, 36, 0.1) inset, 0 0 60px rgba(251, 146, 60, 0.08);
+      border-color: rgba(251, 191, 36, 0.18);
+      transform: translate3d(0, -3px, 0);
+    }
+
+    .theme-dark .brand-title {
+      background: linear-gradient(135deg, #F59E0B 0%, #FB923C 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .theme-dark .hero-pct {
+      background: linear-gradient(135deg, #FCD34D 0%, #F59E0B 45%, #EA580C 100%);
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: gradientShift 5s ease infinite;
+    }
+
+    .theme-dark .card-inner {
+      background: rgba(14, 11, 6, 0.70);
+      border: 1.5px solid rgba(251, 191, 36, 0.10);
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .theme-dark .slot-input {
+      background-color: rgba(14, 11, 6, 0.88);
+      border: 2.5px solid rgba(251, 191, 36, 0.18);
+      color: #FEF3C7;
+      transition: border-color 0.35s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.35s ease;
+    }
+
+    .theme-dark .slot-input:focus {
+      border-color: #F59E0B;
+      box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.2), 0 0 40px rgba(245, 158, 11, 0.35);
+      transform: scale(1.02);
+      background-color: rgba(245, 158, 11, 0.05);
+    }
+
+    .theme-dark .stepper-btn {
+      background: rgba(251, 191, 36, 0.10);
+      color: #FEF3C7;
+      border: 1.5px solid rgba(251, 191, 36, 0.18);
+      font-weight: 900;
+      transition: background 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s, transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s;
+    }
+
+    .theme-dark .stepper-btn:hover {
+      background: rgba(245, 158, 11, 0.25);
+      border-color: rgba(245, 158, 11, 0.6);
+      box-shadow: 0 0 24px rgba(245, 158, 11, 0.4);
+      transform: scale(1.12);
+    }
+
+    .theme-dark .stepper-btn:active {
+      transform: scale(0.88);
+      background: rgba(245, 158, 11, 0.38);
+    }
+
+    /* ORB BACKGROUNDS — AMBER / GOLD */
+    .bg-orb-1,
+    .bg-orb-2,
+    .bg-orb-3 {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      will-change: transform;
+      transform: translate3d(0, 0, 0);
+      backface-visibility: hidden;
+    }
+
+    .bg-orb-1 {
+      width: 750px;
+      height: 750px;
+      background: radial-gradient(circle, rgba(245, 158, 11, 0.28) 0%, rgba(251, 146, 60, 0.12) 60%, transparent 100%);
+      top: -200px;
+      left: -200px;
+      filter: blur(110px);
+    }
+
+    .bg-orb-2 {
+      width: 750px;
+      height: 750px;
+      background: radial-gradient(circle, rgba(234, 88, 12, 0.22) 0%, rgba(245, 158, 11, 0.10) 60%, transparent 100%);
+      bottom: -200px;
+      right: -200px;
+      filter: blur(110px);
+    }
+
+    .bg-orb-3 {
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(253, 186, 116, 0.12) 0%, transparent 100%);
+      top: 40%;
+      left: 50%;
+      transform: translate3d(-50%, -50%, 0);
+      filter: blur(80px);
+    }
+
+    @media (max-width: 768px) {
+      .bg-orb-1,
+      .bg-orb-2 {
+        width: 420px;
+        height: 420px;
+        filter: blur(70px);
+      }
+
+      .bg-orb-3 {
+        width: 280px;
+        height: 280px;
+        filter: blur(55px);
+      }
+
+      .theme-dark .glass-card {
+        backdrop-filter: blur(20px) saturate(160%);
+        -webkit-backdrop-filter: blur(20px) saturate(160%);
+      }
+    }
+
+    /* SHIMMER BAR */
+    .shimmer-bar {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .shimmer-bar::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.28) 50%, transparent 100%);
+      background-size: 400px 100%;
+      animation: shimmer 2.4s linear infinite;
+    }
+
+    /* SCROLLBAR */
+    .custom-scrollbar {
+      -webkit-overflow-scrolling: touch;
+      scroll-behavior: smooth;
+    }
+
+    html::-webkit-scrollbar,
+    body::-webkit-scrollbar,
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    html::-webkit-scrollbar-track,
+    body::-webkit-scrollbar-track,
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    html::-webkit-scrollbar-thumb,
+    body::-webkit-scrollbar-thumb,
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(245, 158, 11, 0.2);
+      border-radius: 9999px;
+      transition: background 0.25s ease;
+    }
+
+    html::-webkit-scrollbar-thumb:hover,
+    body::-webkit-scrollbar-thumb:hover,
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: rgba(245, 158, 11, 0.5);
+    }
+
+    @supports (scrollbar-width: thin) {
+      html,
+      body {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(245, 158, 11, 0.35) transparent;
+      }
+    }
+
+    /* GLOBAL */
+    button {
+      transition: transform 0.22s var(--ease-spring), background 0.25s var(--ease-smooth), border-color 0.25s ease, box-shadow 0.25s ease, opacity 0.2s ease;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      user-select: none;
+      will-change: transform;
+    }
+
+    button:active {
+      transition-duration: 0.08s;
+    }
+
+    input,
+    .slot-input {
+      touch-action: manipulation;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    a {
+      transition: all 0.25s ease;
+    }
+
+    /* DELAYS */
+    .delay-100 {
+      animation-delay: .10s
+    }
+
+    .delay-200 {
+      animation-delay: .20s
+    }
+
+    .delay-300 {
+      animation-delay: .30s
+    }
+
+    .delay-400 {
+      animation-delay: .40s
+    }
+
+    .delay-500 {
+      animation-delay: .50s
+    }
+
+    .delay-600 {
+      animation-delay: .60s
+    }
+
+    .delay-700 {
+      animation-delay: .70s
+    }
+
+    /* INTERACTIVES */
+    .hero-pct-wrapper {
+      transition: transform 0.4s var(--ease-spring);
+      will-change: transform;
+    }
+
+    .hero-pct-wrapper:hover {
+      transform: scale(1.03) translate3d(0, 0, 0);
+    }
+
+    .sim-card {
+      transition: transform 0.35s var(--ease-spring), border-color 0.35s ease, box-shadow 0.35s ease;
+      will-change: transform;
+    }
+
+    .sim-card:hover {
+      transform: translate3d(0, -5px, 0) scale(1.015);
+    }
+
+    .status-badge {
+      transition: all 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .progress-fill {
+      transition: width 1.1s var(--ease-out-expo);
+      border-radius: 9999px;
+      will-change: width;
+    }
+
+    .stat-panel {
+      transition: background 0.55s var(--ease-smooth), border-color 0.55s var(--ease-smooth), transform 0.45s var(--ease-spring);
+    }
+
+    .stat-panel.is-safe {
+      transform: translate3d(0, 0, 0);
+    }
+
+    .stat-panel.is-risk {
+      animation: subtlePulse 2.8s ease-in-out infinite;
+    }
+
+    @keyframes subtlePulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.92; }
+    }
+
+    .sim-pct {
+      display: inline-block;
+      transition: color 0.4s var(--ease-smooth), transform 0.35s var(--ease-spring);
+      will-change: transform;
+    }
+
+    .sim-pct.is-updating {
+      transform: scale(1.06);
+    }
+
+    .count-display {
+      display: inline-block;
+      transition: transform 0.3s var(--ease-spring), color 0.3s ease;
+      will-change: transform;
+    }
+
+    .count-display.bump {
+      animation: countBump 0.35s var(--ease-spring);
+    }
+
+    @keyframes countBump {
+      0% { transform: scale(1); }
+      45% { transform: scale(1.15); }
+      100% { transform: scale(1); }
+    }
+
+    .goal-btn {
+      transition: transform 0.3s var(--ease-spring), background 0.3s var(--ease-smooth), box-shadow 0.3s ease, color 0.3s ease;
+    }
+
+    .goal-btn:hover {
+      transform: scale(1.06);
+    }
+
+    .goal-active {
+      transform: scale(1.1) !important;
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.5), 0 8px 32px rgba(234, 88, 12, 0.4);
+    }
+
+    .install-btn {
+      background: rgba(251, 191, 36, 0.12);
+      border: 1.5px solid rgba(251, 191, 36, 0.22);
+      color: #FEF3C7;
+    }
+
+    .install-btn:hover {
+      background: rgba(245, 158, 11, 0.22);
+      border-color: rgba(245, 158, 11, 0.45);
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.25);
+    }
+  </style>
+</head>
+
+<body class="theme-dark min-h-screen custom-scrollbar antialiased relative">
+
+  <div class="bg-orb-1 animate-orb-drift"></div>
+  <div class="bg-orb-2 animate-orb-drift2"></div>
+  <div class="bg-orb-3 animate-float2"></div>
+
+  <div id="root" class="relative z-10"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback } = React;
+
+    const easeOutExpo = (t) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t));
+
+    function useAnimatedNumber(target, duration = 750) {
+      const [display, setDisplay] = useState(target);
+      const prevRef = useRef(target);
+      const rafRef = useRef(null);
+      useEffect(() => {
+        const from = prevRef.current;
+        const to = target;
+        if (from === to) { setDisplay(to); return; }
+        const start = performance.now();
+        const tick = (now) => {
+          const t = Math.min((now - start) / duration, 1);
+          const ease = easeOutExpo(t);
+          setDisplay(parseFloat((from + (to - from) * ease).toFixed(2)));
+          if (t < 1) rafRef.current = requestAnimationFrame(tick);
+          else { setDisplay(to); prevRef.current = to; }
+        };
+        rafRef.current = requestAnimationFrame(tick);
+        return () => cancelAnimationFrame(rafRef.current);
+      }, [target, duration]);
+      return display;
+    }
+
+    function useBump(value) {
+      const [bumping, setBumping] = useState(false);
+      const prev = useRef(value);
+      useEffect(() => {
+        if (prev.current !== value) {
+          setBumping(true);
+          const timer = setTimeout(() => setBumping(false), 350);
+          prev.current = value;
+          return () => clearTimeout(timer);
+        }
+      }, [value]);
+      return bumping;
+    }
+
+    function calculateStats(presentInput, totalInput, targetGoal = 75) {
+      const present = Math.max(0, parseInt(presentInput) || 0);
+      const total = Math.max(0, parseInt(totalInput) || 0);
+      if (total === 0) return { pct: 0, safeBunks: 0, neededClasses: 0, status: 'neutral', present: 0, total: 0 };
+      const actualPresent = Math.min(present, total);
+      const pct = parseFloat(((actualPresent / total) * 100).toFixed(2));
+      if (pct >= targetGoal) {
+        const safe = Math.floor((100 * actualPresent - targetGoal * total) / targetGoal);
+        return { pct, safeBunks: Math.max(0, safe), neededClasses: 0, status: 'safe', present: actualPresent, total };
+      } else {
+        const exactNeeded = Math.ceil((targetGoal * total - 100 * actualPresent) / (100 - targetGoal));
+        return { pct, safeBunks: 0, neededClasses: Math.max(0, exactNeeded), status: 'risk', present: actualPresent, total };
+      }
+    }
+
+    function usePwaInstall() {
+      const [canInstall, setCanInstall] = useState(false);
+      const [isInstalled, setIsInstalled] = useState(false);
+      const [showInstallModal, setShowInstallModal] = useState(false);
+      const deferredPromptRef = useRef(null);
+
+      useEffect(() => {
+        const checkInstalled = () => {
+          const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone || document.referrer.includes('android-app://');
+          setIsInstalled(!!isStandalone);
+        };
+
+        checkInstalled();
+
+        const onBeforeInstall = (e) => {
+          e.preventDefault();
+          deferredPromptRef.current = e;
+          setCanInstall(true);
+        };
+
+        const onInstalled = () => {
+          setCanInstall(false);
+          setIsInstalled(true);
+          deferredPromptRef.current = null;
+        };
+
+        window.addEventListener('beforeinstallprompt', onBeforeInstall);
+        window.addEventListener('appinstalled', onInstalled);
+
+        return () => {
+          window.removeEventListener('beforeinstallprompt', onBeforeInstall);
+          window.removeEventListener('appinstalled', onInstalled);
+        };
+      }, []);
+
+      const handleInstallClick = useCallback(async () => {
+        const prompt = deferredPromptRef.current;
+        if (prompt) {
+          await prompt.prompt();
+          const { outcome } = await prompt.userChoice;
+          if (outcome === 'accepted') {
+            setCanInstall(false);
+            setIsInstalled(true);
+            deferredPromptRef.current = null;
+          }
+        } else {
+          setShowInstallModal(true);
+        }
+      }, []);
+
+      return { canInstall, isInstalled, showInstallModal, setShowInstallModal, handleInstallClick };
+    }
+
+    function AttendlyApp() {
+      const [presentSlots, setPresentSlots] = useState('');
+      const [totalSlots, setTotalSlots] = useState('');
+      const [targetGoal, setTargetGoal] = useState(75);
+      const [simBunks, setSimBunks] = useState(0);
+      const [simAttends, setSimAttends] = useState(0);
+      const { canInstall, isInstalled, showInstallModal, setShowInstallModal, handleInstallClick } = usePwaInstall();
+
+      const stats = useMemo(
+        () => calculateStats(presentSlots, totalSlots, targetGoal),
+        [presentSlots, totalSlots, targetGoal]
+      );
+
+      useLayoutEffect(() => {
+        if (window.lucide) window.lucide.createIcons();
+      }, [canInstall, isInstalled, showInstallModal, stats.status]);
+
+      const animatedPct = useAnimatedNumber(stats.pct, 900);
+
+      const updatePresent = useCallback((d) => {
+        setPresentSlots(prev => {
+          const c = parseInt(prev) || 0;
+          return Math.max(0, Math.min(parseInt(totalSlots) || 999, c + d)).toString();
+        });
+      }, [totalSlots]);
+
+      const updateTotal = useCallback((d) => {
+        setTotalSlots(prev => {
+          const c = parseInt(prev) || 0;
+          return Math.max(0, c + d).toString();
+        });
+      }, []);
+
+      const totalNum = parseInt(totalSlots) || 0;
+      const presentNum = parseInt(presentSlots) || 0;
+      const afterBunkTotal = totalNum + parseInt(simBunks || 0);
+      const afterBunkPctRaw = afterBunkTotal > 0 ? (presentNum / afterBunkTotal) * 100 : 0;
+      const afterAttTotal = totalNum + parseInt(simAttends || 0);
+      const afterAttPctRaw = afterAttTotal > 0 ? ((presentNum + parseInt(simAttends || 0)) / afterAttTotal) * 100 : 0;
+
+      const animatedBunkPct = useAnimatedNumber(afterBunkPctRaw, 650);
+      const animatedAttPct = useAnimatedNumber(afterAttPctRaw, 650);
+      const safeBunksBump = useBump(stats.safeBunks);
+      const neededBump = useBump(stats.neededClasses);
+
+      return (
+        <div className="min-h-screen flex flex-col justify-between">
+
+          <nav className="sticky top-0 z-50 glass-navbar h-[80px] px-4 sm:px-12 flex items-center justify-between shadow-lg animate-fade-in-down">
+            <div className="flex flex-col justify-center">
+              <h1 className="brand-title text-[20px] sm:text-[28px] lg:text-[34px] font-[800] leading-none tracking-[-0.03em]">
+                93Attendance-Calculator
+              </h1>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleInstallClick}
+                title={isInstalled ? "App Installed" : "Install PWA App"}
+                aria-label="Install PWA App"
+                className="install-btn px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold flex items-center gap-2 shadow-md hover:scale-105 active:scale-95 transition-all duration-300"
+              >
+                <i data-lucide={isInstalled ? "check-circle" : "download"} className={`w-4 h-4 ${isInstalled ? "text-emerald-400" : "text-amber-400"}`}></i>
+                <span className="inline-block">{isInstalled ? "Installed" : "Install App"}</span>
+              </button>
+            </div>
+          </nav>
+
+          {showInstallModal && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+              <div className="glass-card max-w-md w-full p-6 sm:p-8 rounded-[28px] space-y-6 shadow-2xl relative border border-amber-500/30">
+                <button
+                  onClick={() => setShowInstallModal(false)}
+                  className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 flex items-center justify-center font-bold text-lg transition-all"
+                  aria-label="Close modal"
+                >
+                  ✕
+                </button>
+
+                <div className="flex items-center gap-3.5">
+                  <img src="./icons/icon-192.png" alt="93Attendance App Icon" className="w-14 h-14 rounded-2xl border border-amber-500/40 shadow-lg object-cover" />
+                  <div>
+                    <h3 className="text-xl font-bold text-white">Install 93Attendance</h3>
+                    <p className="text-xs text-amber-200/60 font-medium">Fast, Offline-Capable Web App</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4 text-xs sm:text-sm text-slate-300 leading-relaxed">
+                  {isInstalled ? (
+                    <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 flex items-center gap-3 font-semibold">
+                      <i data-lucide="check-circle" className="w-5 h-5 text-emerald-400 shrink-0"></i>
+                      <span>93Attendance-Calculator is already installed on your device!</span>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-slate-300 font-medium">Follow these steps to install the app on your home screen or desktop:</p>
+                      <div className="space-y-3">
+                        <div className="p-3.5 rounded-xl bg-white/5 border border-amber-500/15 flex items-start gap-3">
+                          <i data-lucide="globe" className="w-5 h-5 text-amber-400 shrink-0 mt-0.5"></i>
+                          <div>
+                            <strong className="text-amber-300 block mb-0.5">iOS (Safari):</strong>
+                            Tap the <span className="font-bold text-white">Share icon (↑)</span> in your browser menu, then select <span className="font-bold text-white">'Add to Home Screen'</span>.
+                          </div>
+                        </div>
+                        <div className="p-3.5 rounded-xl bg-white/5 border border-amber-500/15 flex items-start gap-3">
+                          <i data-lucide="laptop" className="w-5 h-5 text-amber-400 shrink-0 mt-0.5"></i>
+                          <div>
+                            <strong className="text-amber-300 block mb-0.5">Android / Chrome / Edge:</strong>
+                            Tap the <span className="font-bold text-white">Browser Menu (⋮ or ⊕)</span> in the address bar and select <span className="font-bold text-white">'Install App'</span>.
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                <button
+                  onClick={() => setShowInstallModal(false)}
+                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-extrabold text-sm shadow-lg shadow-amber-500/25 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                >
+                  Got it!
+                </button>
+              </div>
+            </div>
+          )}
+
+          <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-8 py-6 sm:py-8 space-y-6">
+            <div className="glass-card p-6 sm:p-10 rounded-[28px] space-y-8 shadow-2xl relative overflow-hidden animate-fade-in-up delay-200">
+
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/10 pb-6 animate-fade-in-up delay-300">
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+                    <i data-lucide="target" className="w-6 h-6 text-cyan-400"></i> Target Attendance Goal
+                  </h2>
+                  <p className="text-xs sm:text-sm text-slate-400 mt-1">Select your college minimum percentage threshold</p>
+                </div>
+                <div className="flex gap-2.5 w-full sm:w-auto">
+                  {[75, 80, 85, 90].map(goal => (
+                    <button
+                      key={goal}
+                      onClick={() => setTargetGoal(goal)}
+                      className={`goal-btn flex-1 sm:flex-none px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold ${targetGoal === goal
+                        ? 'goal-active bg-gradient-to-r from-amber-500 to-orange-400 text-white shadow-lg shadow-amber-500/30'
+                        : 'bg-white/5 hover:bg-white/10 text-amber-200/60 hover:text-amber-100'
+                        }`}
+                    >{goal}%</button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+                <div className="space-y-2.5 animate-slide-in-left delay-400">
+                  <div className="flex justify-between items-center text-xs sm:text-sm font-bold text-slate-400">
+                    <span className="uppercase tracking-wider">Present Slots / Attended</span>
+                    <span className="text-amber-400 font-mono">Attended</span>
+                  </div>
+                  <div className="relative flex items-center">
+                    <button onClick={() => updatePresent(-1)} className="stepper-btn absolute left-2.5 z-10 w-[48px] h-[48px] rounded-[16px] font-extrabold text-2xl flex items-center justify-center shadow-md">&#8722;</button>
+                    <input type="number" min="0" value={presentSlots} onChange={e => setPresentSlots(e.target.value)}
+                      className="slot-input w-full h-[64px] rounded-[16px] py-3.5 px-16 text-center text-3xl sm:text-4xl font-black focus:outline-none font-mono tracking-tight" />
+                    <button onClick={() => updatePresent(1)} className="stepper-btn absolute right-2.5 z-10 w-[48px] h-[48px] rounded-[16px] font-extrabold text-2xl flex items-center justify-center shadow-md">+</button>
+                  </div>
+                </div>
+                <div className="space-y-2.5 animate-slide-in-right delay-400">
+                  <div className="flex justify-between items-center text-xs sm:text-sm font-bold text-amber-200/60">
+                    <span className="uppercase tracking-wider">Total Slots / Held</span>
+                    <span className="text-orange-400 font-mono">Total Held</span>
+                  </div>
+                  <div className="relative flex items-center">
+                    <button onClick={() => updateTotal(-1)} className="stepper-btn absolute left-2.5 z-10 w-[48px] h-[48px] rounded-[16px] font-extrabold text-2xl flex items-center justify-center shadow-md">&#8722;</button>
+                    <input type="number" min="0" value={totalSlots} onChange={e => setTotalSlots(e.target.value)}
+                      className="slot-input w-full h-[64px] rounded-[16px] py-3.5 px-16 text-center text-3xl sm:text-4xl font-black focus:outline-none font-mono tracking-tight" />
+                    <button onClick={() => updateTotal(1)} className="stepper-btn absolute right-2.5 z-10 w-[48px] h-[48px] rounded-[16px] font-extrabold text-2xl flex items-center justify-center shadow-md">+</button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="card-inner p-8 sm:p-10 rounded-[24px] space-y-6 shadow-inner relative overflow-hidden animate-scale-in delay-500">
+                <div style={{
+                  position: 'absolute', top: '-40px', right: '-40px', width: '200px', height: '200px', borderRadius: '50%',
+                  background: stats.status === 'safe'
+                    ? 'radial-gradient(circle,rgba(245,158,11,0.22) 0%,transparent 70%)'
+                    : 'radial-gradient(circle,rgba(239,68,68,0.14) 0%,transparent 70%)',
+                  filter: 'blur(30px)', pointerEvents: 'none', transition: 'background 0.8s ease'
+                }}></div>
+
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+                  <div className="hero-pct-wrapper">
+                    <span className="text-xs uppercase font-extrabold tracking-widest text-slate-400 block mb-1">Calculated Attendance</span>
+                    <div className="text-6xl sm:text-7xl lg:text-8xl font-[900] tracking-[-0.04em] leading-none hero-pct my-1">
+                      {animatedPct}%
+                    </div>
+                    <div className="text-lg sm:text-xl font-bold text-slate-300 mt-2 font-mono">
+                      {stats.present} / {stats.total} Classes Attended
+                    </div>
+                  </div>
+                  <div>
+                    <span className={`status-badge px-5 py-2.5 rounded-full text-xs sm:text-sm font-black tracking-wider uppercase flex items-center gap-2 border transition-all duration-500 ${stats.status === 'safe'
+                      ? 'bg-amber-500/20 text-amber-400 border-amber-500/40 shadow-xl shadow-amber-500/20'
+                      : 'bg-red-500/20 text-red-400 border-red-500/40 shadow-xl shadow-red-500/20'
+                      }`}>
+                      {stats.status === 'safe' ? '✅ SAFE ZONE' : '⚠️ LOW ATTENDANCE'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="w-full bg-stone-900/80 rounded-full h-5 overflow-hidden p-[3px] border border-amber-500/10 shadow-inner">
+                  <div
+                    className={`progress-fill h-full shimmer-bar ${stats.pct >= targetGoal
+                      ? 'bg-gradient-to-r from-amber-500 via-yellow-400 to-orange-400 shadow-lg shadow-amber-500/50'
+                      : 'bg-gradient-to-r from-red-600 via-rose-500 to-orange-500 shadow-lg shadow-red-500/50'
+                      }`}
+                    style={{ width: `${Math.min(100, stats.pct)}%` }}
+                  ></div>
+                </div>
+
+                <div className={`stat-panel p-5 sm:p-6 rounded-[20px] border flex items-center justify-between text-sm sm:text-base ${stats.status === 'safe' ? 'is-safe bg-amber-500/10 border-amber-500/25' : 'is-risk bg-red-500/10 border-red-500/25'
+                  }`}>
+                  {stats.status === 'safe' ? (
+                    <div className="flex items-center gap-4 text-amber-400 font-semibold">
+                      <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0 shadow-lg">
+                        <i data-lucide="shield-check" className="w-6 h-6"></i>
+                      </div>
+                      <div>
+                        <div className="text-base sm:text-lg font-bold text-white">
+                          You have <span className={`count-display text-amber-400 text-xl font-black ${safeBunksBump ? 'bump' : ''}`}>{stats.safeBunks} safe bunks</span> left!
+                        </div>
+                        <div className="text-xs sm:text-sm text-amber-200/50 font-normal mt-0.5">
+                          You can safely miss the next {stats.safeBunks} classes and stay above your {targetGoal}% goal.
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-4 text-red-400 font-semibold">
+                      <div className="w-12 h-12 rounded-2xl bg-red-500/20 border border-red-500/30 flex items-center justify-center shrink-0 shadow-lg">
+                        <i data-lucide="alert-triangle" className="w-6 h-6"></i>
+                      </div>
+                      <div>
+                        <div className="text-base sm:text-lg font-bold text-white">
+                          Attend <span className={`count-display text-red-400 text-xl font-black ${neededBump ? 'bump' : ''}`}>{stats.neededClasses} consecutive classes</span>!
+                        </div>
+                        <div className="text-xs sm:text-sm text-amber-200/50 font-normal mt-0.5">
+                          Required to bring your attendance back up to the {targetGoal}% target threshold.
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-white/10 space-y-4 animate-fade-in-up delay-600">
+                <h3 className="text-base font-bold flex items-center gap-2">
+                  <i data-lucide="sliders" className="w-5 h-5 text-amber-400"></i> What-If Bunk Simulator
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                  <div className="sim-card p-5 rounded-[20px] bg-white/5 border border-amber-500/15 space-y-3 hover:border-amber-500/40 hover:shadow-lg hover:shadow-amber-500/10">
+                    <div className="flex justify-between items-center text-xs sm:text-sm">
+                      <span className="font-bold text-amber-200/70">If you BUNK next N classes:</span>
+                      <div className="flex items-center gap-1.5">
+                        <button onClick={() => setSimBunks(Math.max(0, parseInt(simBunks) - 1))} className="stepper-btn w-7 h-7 rounded-xl font-bold text-xs flex items-center justify-center">&#8722;</button>
+                        <span className="px-2 font-mono font-bold text-amber-400 text-sm min-w-[24px] text-center">{simBunks}</span>
+                        <button onClick={() => setSimBunks(parseInt(simBunks) + 1)} className="stepper-btn w-7 h-7 rounded-xl font-bold text-xs flex items-center justify-center">+</button>
+                      </div>
+                    </div>
+                    <div className="flex items-baseline justify-between text-xs sm:text-sm pt-2 border-t border-amber-500/10">
+                      <span className="text-amber-200/50">New Attendance %:</span>
+                      <span className={`sim-pct text-xl font-black ${animatedBunkPct >= targetGoal ? 'text-amber-400' : 'text-red-400'}`}>
+                        {animatedBunkPct.toFixed(2)}%
+                      </span>
+                    </div>
+                  </div>
+                  <div className="sim-card p-5 rounded-[20px] bg-white/5 border border-orange-500/15 space-y-3 hover:border-orange-500/40 hover:shadow-lg hover:shadow-orange-500/10">
+                    <div className="flex justify-between items-center text-xs sm:text-sm">
+                      <span className="font-bold text-amber-200/70">If you ATTEND next N classes:</span>
+                      <div className="flex items-center gap-1.5">
+                        <button onClick={() => setSimAttends(Math.max(0, parseInt(simAttends) - 1))} className="stepper-btn w-7 h-7 rounded-xl font-bold text-xs flex items-center justify-center">&#8722;</button>
+                        <span className="px-2 font-mono font-bold text-orange-400 text-sm min-w-[24px] text-center">{simAttends}</span>
+                        <button onClick={() => setSimAttends(parseInt(simAttends) + 1)} className="stepper-btn w-7 h-7 rounded-xl font-bold text-xs flex items-center justify-center">+</button>
+                      </div>
+                    </div>
+                    <div className="flex items-baseline justify-between text-xs sm:text-sm pt-2 border-t border-amber-500/10">
+                      <span className="text-amber-200/50">New Attendance %:</span>
+                      <span className="sim-pct text-xl font-black text-orange-400">{animatedAttPct.toFixed(2)}%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </main>
+
+          <footer className="glass-navbar border-t py-3 px-4 text-center text-[10px] sm:text-xs text-slate-400 font-normal mt-6 animate-fade-in-up delay-700 space-y-0.5">
+            <div>&copy; 2026 | 93Attendance-Calculator</div>
+            <div>
+              Designed and Developed by{' '}
+              <a href="https://github.com/lakshyap93" target="_blank" rel="noopener noreferrer" className="font-bold brand-title hover:opacity-80 hover:tracking-wide">Lakshya Purohit</a>
+            </div>
+          </footer>
+
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<AttendlyApp />);
+  </script>
+
+  <script>
+    (function () {
+      let scrollEndTimer = null;
+
+      window.addEventListener('scroll', function () {
+        document.body.classList.add('is-scrolling');
+        clearTimeout(scrollEndTimer);
+        scrollEndTimer = setTimeout(function () {
+          document.body.classList.remove('is-scrolling');
+        }, 140);
+      }, { passive: true });
+    })();
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('[PWA] Service Worker registered:', reg.scope))
+          .catch(err => console.warn('[PWA] Service Worker registration failed:', err));
+      });
+    }
+  </script>
+</body>
+
+</html>
